@@ -67,7 +67,7 @@ export default function TeamRosterModal({ isOpen, onClose, selectedTeam, allTeam
           </div>
         </div>
 
-        {/* 6 Official Role Cards */}
+        {/* 6 Official Role Cards with Real Images */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-5">
           {roles.map(role => {
             const { Icon } = role;
@@ -80,7 +80,7 @@ export default function TeamRosterModal({ isOpen, onClose, selectedTeam, allTeam
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    <Icon className="w-10 h-10 rounded-lg shadow-md" />
+                    <Icon className="w-10 h-10 rounded-lg shadow-md border border-slate-700/50" />
                   </div>
                   <div>
                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
