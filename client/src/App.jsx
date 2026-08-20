@@ -26,7 +26,7 @@ export default function App() {
     fetchBracket();
   }, []);
 
-  // Hidden Trigger: Ctrl + Shift + A
+  // Hidden Shortcut: Ctrl + Shift + A
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
@@ -37,7 +37,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Hidden Trigger: 5 clicks on Header Trophy
+  // Hidden 5 clicks on Logo
   const handleSecretClick = () => {
     setSecretClicks(prev => {
       if (prev + 1 >= 5) {
@@ -50,6 +50,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer select-none" onClick={handleSecretClick}>
@@ -70,36 +71,32 @@ export default function App() {
             onClick={() => setIsRegisterOpen(true)}
             className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs uppercase font-extrabold px-4 py-2 rounded-xl transition shadow-md shadow-cyan-500/20"
           >
-            <PlusCircle size={16} /> Register Squad ({teams.length}/8)
+            <PlusCircle size={16} /> Register Team ({teams.length}/8 Teams)
           </button>
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* 2 Clean Stat Cards (Removed Lineup Banner) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
             <Shield className="text-cyan-400 w-8 h-8" />
             <div>
               <p className="text-xs text-slate-400">Registered Teams</p>
-              <p className="text-lg font-bold text-white">{teams.length} / 8 Squads</p>
+              <p className="text-lg font-bold text-white">{teams.length} / 8 Teams</p>
             </div>
           </div>
           <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
             <Swords className="text-yellow-400 w-8 h-8" />
             <div>
-              <p className="text-xs text-slate-400">Match Format</p>
-              <p className="text-lg font-bold text-white">Best of 3 (Bo3)</p>
-            </div>
-          </div>
-          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
-            <Trophy className="text-red-400 w-8 h-8" />
-            <div>
-              <p className="text-xs text-slate-400">Lineup Rules</p>
-              <p className="text-lg font-bold text-white">5 Starters + 1 Sub</p>
+              <p className="text-xs text-slate-400">Tournament Format</p>
+              <p className="text-lg font-bold text-white">Double Elimination (BO3 • BO5 Finals)</p>
             </div>
           </div>
         </div>
 
+        {/* Brackets */}
         {matches.length === 0 ? (
           <div className="text-center py-20 bg-slate-900/30 border border-slate-800 rounded-2xl">
             <Swords className="w-12 h-12 text-slate-600 mx-auto mb-3" />
@@ -113,6 +110,7 @@ export default function App() {
         )}
       </main>
 
+      {/* Footer */}
       <footer className="border-t border-slate-800/50 py-6 text-center text-xs text-slate-600">
         <p>© 2025 IHS Tournament. All rights reserved.</p>
         <span 

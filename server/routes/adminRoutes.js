@@ -13,35 +13,45 @@ const authAdmin = (req, res, next) => {
   next();
 };
 
+// Initialize or Reset Bracket with 8 Teams
 router.post('/init-bracket', authAdmin, async (req, res) => {
   try {
     await Match.deleteMany({});
     const teams = await Team.find().sort({ seed: 1 }).limit(8);
 
     const matchTemplates = [
-      // UPPER BRACKET ROUND 1
-      { matchCode: 'UB-R1-M1', bracket: 'UPPER', round: 1, matchNumber: 1, teamA: teams[0]?._id, teamB: teams[7]?._id, nextWinnerMatch: 'UB-R2-M1', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R1-M1', nextLoserSlot: 'teamA' },
-      { matchCode: 'UB-R1-M2', bracket: 'UPPER', round: 1, matchNumber: 2, teamA: teams[3]?._id, teamB: teams[4]?._id, nextWinnerMatch: 'UB-R2-M1', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R1-M1', nextLoserSlot: 'teamB' },
-      { matchCode: 'UB-R1-M3', bracket: 'UPPER', round: 1, matchNumber: 3, teamA: teams[1]?._id, teamB: teams[6]?._id, nextWinnerMatch: 'UB-R2-M2', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R1-M2', nextLoserSlot: 'teamA' },
-      { matchCode: 'UB-R1-M4', bracket: 'UPPER', round: 1, matchNumber: 4, teamA: teams[2]?._id, teamB: teams[5]?._id, nextWinnerMatch: 'UB-R2-M2', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R1-M2', nextLoserSlot: 'teamB' },
+      // UPPER BRACKET ROUND 1 (Quarter Finals - Bo3)
+      { matchCode: 'UB-R1-M1', bracket: 'UPPER', round: 1, matchNumber: 1, bestOf: 3, teamA: teams[0]?._id, teamB: teams[7]?._id, nextWinnerMatch: 'UB-R2-M1', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R1-M1', nextLoserSlot: 'teamA' },
+      { matchCode: 'UB-R1-M2', bracket: 'UPPER', round: 1, matchNumber: 2, bestOf: 3, teamA: teams[3]?._id, teamB: teams[4]?._id, nextWinnerMatch: 'UB-R2-M1', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R1-M1', nextLoserSlot: 'teamB' },
+      { matchCode: 'UB-R1-M3', bracket: 'UPPER', round: 1, matchNumber: 3, bestOf: 3, teamA: teams[1]?._id, teamB: teams[6]?._id, nextWinnerMatch: 'UB-R2-M2', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R1-M2', nextLoserSlot: 'teamA' },
+      { matchCode: 'UB-R1-M4', bracket: 'UPPER', round: 1, matchNumber: 4, bestOf: 3, teamA: teams[2]?._id, teamB: teams[5]?._id, nextWinnerMatch: 'UB-R2-M2', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R1-M2', nextLoserSlot: 'teamB' },
 
-      // UPPER BRACKET SEMIS
-      { matchCode: 'UB-R2-M1', bracket: 'UPPER', round: 2, matchNumber: 1, nextWinnerMatch: 'UB-FINALS', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R2-M2', nextLoserSlot: 'teamB' },
-      { matchCode: 'UB-R2-M2', bracket: 'UPPER', round: 2, matchNumber: 2, nextWinnerMatch: 'UB-FINALS', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R2-M1', nextLoserSlot: 'teamB' },
+      // UPPER BRACKET ROUND 2 (Semi Finals - Bo3)
+      { matchCode: 'UB-R2-M1', bracket: 'UPPER', round: 2, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'UB-FINALS', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R2-M2', nextLoserSlot: 'teamB' },
+      { matchCode: 'UB-R2-M2', bracket: 'UPPER', round: 2, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'UB-FINALS', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R2-M1', nextLoserSlot: 'teamB' },
 
-      // UPPER BRACKET FINALS
-      { matchCode: 'UB-FINALS', bracket: 'UPPER', round: 3, matchNumber: 1, nextWinnerMatch: 'GRAND-FINALS', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-FINALS', nextLoserSlot: 'teamB' },
+      // UPPER BRACKET FINALS (Bo3)
+      { matchCode: 'UB-FINALS', bracket: 'UPPER', round: 3, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'GRAND-FINALS', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-FINALS', nextLoserSlot: 'teamB' },
 
-      // LOWER BRACKET
-      { matchCode: 'LB-R1-M1', bracket: 'LOWER', round: 1, matchNumber: 1, nextWinnerMatch: 'LB-R2-M1', nextWinnerSlot: 'teamA' },
-      { matchCode: 'LB-R1-M2', bracket: 'LOWER', round: 1, matchNumber: 2, nextWinnerMatch: 'LB-R2-M2', nextWinnerSlot: 'teamA' },
-      { matchCode: 'LB-R2-M1', bracket: 'LOWER', round: 2, matchNumber: 1, nextWinnerMatch: 'LB-R3-M1', nextWinnerSlot: 'teamA' },
-      { matchCode: 'LB-R2-M2', bracket: 'LOWER', round: 2, matchNumber: 2, nextWinnerMatch: 'LB-R3-M1', nextWinnerSlot: 'teamB' },
-      { matchCode: 'LB-R3-M1', bracket: 'LOWER', round: 3, matchNumber: 1, nextWinnerMatch: 'LB-FINALS', nextWinnerSlot: 'teamA' },
-      { matchCode: 'LB-FINALS', bracket: 'LOWER', round: 4, matchNumber: 1, nextWinnerMatch: 'GRAND-FINALS', nextWinnerSlot: 'teamB' },
+      // LOWER BRACKET ROUND 1 (Bo3)
+      { matchCode: 'LB-R1-M1', bracket: 'LOWER', round: 1, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'LB-R2-M1', nextWinnerSlot: 'teamA' },
+      { matchCode: 'LB-R1-M2', bracket: 'LOWER', round: 1, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'LB-R2-M2', nextWinnerSlot: 'teamA' },
 
-      // GRAND FINALS
-      { matchCode: 'GRAND-FINALS', bracket: 'GRAND_FINALS', round: 5, matchNumber: 1, bestOf: 3 }
+      // LOWER BRACKET ROUND 2 (Quarter Finals - Bo3)
+      { matchCode: 'LB-R2-M1', bracket: 'LOWER', round: 2, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'LB-R3-M1', nextWinnerSlot: 'teamA' },
+      { matchCode: 'LB-R2-M2', bracket: 'LOWER', round: 2, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'LB-R3-M1', nextWinnerSlot: 'teamB' },
+
+      // LOWER BRACKET ROUND 3 (Semi Finals - Bo3)
+      { matchCode: 'LB-R3-M1', bracket: 'LOWER', round: 3, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'LB-FINALS', nextWinnerSlot: 'teamA' },
+
+      // LOWER BRACKET FINALS (Bo3)
+      { matchCode: 'LB-FINALS', bracket: 'LOWER', round: 4, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'GRAND-FINALS', nextWinnerSlot: 'teamB' },
+
+      // GRAND FINALS (Bo5: Team A = UB Winner with 0 losses, Team B = LB Winner with 1 loss)
+      { matchCode: 'GRAND-FINALS', bracket: 'GRAND_FINALS', round: 5, matchNumber: 1, bestOf: 5 },
+
+      // BRACKET RESET (Bo5: Triggered ONLY if LB Winner beats UB Winner in Grand Finals)
+      { matchCode: 'GF-RESET', bracket: 'GRAND_FINALS', round: 6, matchNumber: 2, bestOf: 5, status: 'PENDING' }
     ];
 
     await Match.insertMany(matchTemplates);
@@ -51,6 +61,7 @@ router.post('/init-bracket', authAdmin, async (req, res) => {
   }
 });
 
+// Update Score & Automatic Progression
 router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
   try {
     const { matchCode } = req.params;
@@ -59,24 +70,50 @@ router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
     const match = await Match.findOne({ matchCode });
     if (!match) return res.status(404).json({ error: "Match not found" });
     if (!match.teamA || !match.teamB) {
-      return res.status(400).json({ error: "Cannot submit scores. Teams not set yet." });
+      return res.status(400).json({ error: "Cannot submit scores. Both teams must be set first." });
     }
 
     match.scoreA = Number(scoreA);
     match.scoreB = Number(scoreB);
 
-    const winCondition = Math.ceil(match.bestOf / 2); // 2 wins for Bo3
+    // Bo3 = 2 wins, Bo5 = 3 wins
+    const winCondition = Math.ceil(match.bestOf / 2);
 
-    if (match.scoreA === winCondition || match.scoreB === winCondition) {
+    if (match.scoreA >= winCondition || match.scoreB >= winCondition) {
       match.status = 'COMPLETED';
-      const winnerId = match.scoreA === winCondition ? match.teamA : match.teamB;
-      const loserId = match.scoreA === winCondition ? match.teamB : match.teamA;
+      const winnerId = match.scoreA >= winCondition ? match.teamA : match.teamB;
+      const loserId = match.scoreA >= winCondition ? match.teamB : match.teamA;
 
       match.winner = winnerId;
       match.loser = loserId;
       await match.save();
 
-      // Move Winner
+      // Special Case: Grand Finals 1 Logic (True Double Elimination)
+      if (matchCode === 'GRAND-FINALS') {
+        const isLowerBracketWinnerVictory = String(winnerId) === String(match.teamB);
+
+        if (isLowerBracketWinnerVictory) {
+          // LB Winner defeated UB Winner -> Bracket Reset Triggered!
+          await Match.findOneAndUpdate(
+            { matchCode: 'GF-RESET' },
+            {
+              teamA: match.teamA, // UB Winner (now 1 loss)
+              teamB: match.teamB, // LB Winner (1 loss)
+              status: 'ONGOING',
+              scoreA: 0,
+              scoreB: 0
+            }
+          );
+        } else {
+          // UB Winner won -> Tournament Champion (No Reset required)
+          await Match.findOneAndUpdate(
+            { matchCode: 'GF-RESET' },
+            { status: 'COMPLETED', scoreA: 0, scoreB: 0 }
+          );
+        }
+      }
+
+      // Normal Progression for Standard Matches
       if (match.nextWinnerMatch && match.nextWinnerSlot) {
         await Match.findOneAndUpdate(
           { matchCode: match.nextWinnerMatch },
@@ -84,7 +121,6 @@ router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
         );
       }
 
-      // Drop Loser to Lower Bracket
       if (match.nextLoserMatch && match.nextLoserSlot) {
         await Match.findOneAndUpdate(
           { matchCode: match.nextLoserMatch },
@@ -96,7 +132,7 @@ router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
       await match.save();
     }
 
-    res.json({ message: "Match updated and bracket synchronized.", match });
+    res.json({ message: "Match score updated and bracket progressed.", match });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
