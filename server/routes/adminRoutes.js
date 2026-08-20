@@ -14,7 +14,20 @@ const authAdmin = (req, res, next) => {
   next();
 };
 
-// Reset Entire Tournament & Bracket
+const broadcastBracketUpdate = async (io) => {
+  const matches = await Match.find()
+    .populate('teamA')
+    .populate('teamB')
+    .populate('winner')
+    .populate('loser')
+    .sort({ matchCode: 1 });
+  const teams = await Team.find().sort({ seed: 1 });
+  const state = await TournamentState.findOne();
+
+  io.emit('bracketUpdated', { matches, teams, state });
+};
+
+// Reset Entire Tournament
 router.post('/init-bracket', authAdmin, async (req, res) => {
   try {
     await Match.deleteMany({});
@@ -42,13 +55,17 @@ router.post('/init-bracket', authAdmin, async (req, res) => {
     ];
 
     await Match.insertMany(matchTemplates);
+
+    const io = req.app.get('io');
+    await broadcastBracketUpdate(io);
+
     res.json({ message: "Double Elimination Bracket reset successfully!" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update Score & Automatic Progression
+// Update Score (Handles partial 1-0, 1-1, or series winner)
 router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
   try {
     const { matchCode } = req.params;
@@ -63,7 +80,7 @@ router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
     match.scoreA = Number(scoreA);
     match.scoreB = Number(scoreB);
 
-    const winCondition = Math.ceil(match.bestOf / 2);
+    const winCondition = Math.ceil(match.bestOf / 2); // 2 wins for Bo3, 3 wins for Bo5
 
     if (match.scoreA >= winCondition || match.scoreB >= winCondition) {
       match.status = 'COMPLETED';
@@ -74,6 +91,7 @@ router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
       match.loser = loserId;
       await match.save();
 
+      // Grand Finals 1 Logic
       if (matchCode === 'GRAND-FINALS') {
         const isLowerBracketWinnerVictory = String(winnerId) === String(match.teamB);
         if (isLowerBracketWinnerVictory) {
@@ -103,11 +121,16 @@ router.put('/update-score/:matchCode', authAdmin, async (req, res) => {
         );
       }
     } else {
+      // Partial Live Score (e.g. 1-0 or 1-1)
       match.status = 'ONGOING';
       await match.save();
     }
 
-    res.json({ message: "Match score updated and bracket progressed.", match });
+    // BROADCAST LIVE SCORE CHANGE TO ALL CLIENTS INSTANTLY
+    const io = req.app.get('io');
+    await broadcastBracketUpdate(io);
+
+    res.json({ message: "Score updated and live broadcast sent!", match });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

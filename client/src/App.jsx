@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Trophy, Swords, Shield, PlusCircle, BookOpen, Sparkles, Timer, Shuffle } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { Trophy, Swords, Shield, PlusCircle, BookOpen, Sparkles, Timer, Shuffle, Radio } from 'lucide-react';
 import Bracket from './components/Bracket';
 import RegisterModal from './components/RegisterModal';
 import AdminModal from './components/AdminModal';
@@ -17,22 +18,39 @@ export default function App() {
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [secretClicks, setSecretClicks] = useState(0);
 
-  const fetchBracket = async () => {
+  const fetchBracket = useCallback(async () => {
     try {
       const res = await axios.get('/api/bracket');
       setMatches(res.data.matches);
       setTeams(res.data.teams);
       setTournamentState(res.data.state);
     } catch (err) {
-      console.error(err);
+      console.error("Initial bracket fetch error:", err);
     }
-  };
-
-  useEffect(() => {
-    fetchBracket();
   }, []);
 
-  // Countdown Timer Logic
+  // 1. Initial Load & WebSocket Live Sync
+  useEffect(() => {
+    fetchBracket();
+
+    // Connect to WebSocket server
+    const socket = io();
+
+    // Listen for instant live updates (registrations, live scores, bracket progress)
+    socket.on('bracketUpdated', (data) => {
+      if (data) {
+        setMatches(data.matches);
+        setTeams(data.teams);
+        setTournamentState(data.state);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [fetchBracket]);
+
+  // 2. Live Countdown Timer
   useEffect(() => {
     if (!tournamentState?.timerStartedAt || tournamentState?.isShuffled) {
       setSecondsRemaining(null);
@@ -46,7 +64,6 @@ export default function App() {
 
       setSecondsRemaining(remaining);
 
-      // When countdown reaches 0, trigger bracket fetch to reveal randomized matchups
       if (remaining === 0) {
         clearInterval(interval);
         setTimeout(() => fetchBracket(), 1000);
@@ -54,9 +71,9 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [tournamentState]);
+  }, [tournamentState, fetchBracket]);
 
-  // Hidden Shortcut: Ctrl + Shift + A
+  // 3. Admin Shortcut: Ctrl + Shift + A
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
@@ -67,7 +84,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Hidden 5 clicks on Logo
+  // 4. Admin 5 clicks on Logo
   const handleSecretClick = () => {
     setSecretClicks(prev => {
       if (prev + 1 >= 5) {
@@ -94,9 +111,14 @@ export default function App() {
               <Trophy className="text-white w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-black uppercase tracking-wider bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                IHS Tournament
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black uppercase tracking-wider bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                  IHS Tournament
+                </h1>
+                <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase animate-pulse">
+                  <Radio size={10} /> Live Sync
+                </span>
+              </div>
               <p className="text-[10px] text-cyan-400 font-semibold tracking-widest uppercase">
                 Official Double Elimination Bracket
               </p>
@@ -214,7 +236,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Bracket Viewer (Auto-rendered immediately) */}
+        {/* Live Bracket */}
         <Bracket matches={matches} />
       </main>
 

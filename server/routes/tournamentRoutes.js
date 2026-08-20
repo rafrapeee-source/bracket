@@ -4,12 +4,10 @@ const Team = require('../models/Team');
 const Match = require('../models/Match');
 const TournamentState = require('../models/TournamentState');
 
-// Helper to ensure base bracket structure exists
 const ensureBracketExists = async () => {
   const matchCount = await Match.countDocuments();
   if (matchCount === 0) {
     const matchTemplates = [
-      // UPPER BRACKET
       { matchCode: 'UB-R1-M1', bracket: 'UPPER', round: 1, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'UB-R2-M1', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R1-M1', nextLoserSlot: 'teamA' },
       { matchCode: 'UB-R1-M2', bracket: 'UPPER', round: 1, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'UB-R2-M1', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R1-M1', nextLoserSlot: 'teamB' },
       { matchCode: 'UB-R1-M3', bracket: 'UPPER', round: 1, matchNumber: 3, bestOf: 3, nextWinnerMatch: 'UB-R2-M2', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R1-M2', nextLoserSlot: 'teamA' },
@@ -17,16 +15,12 @@ const ensureBracketExists = async () => {
       { matchCode: 'UB-R2-M1', bracket: 'UPPER', round: 2, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'UB-FINALS', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-R2-M2', nextLoserSlot: 'teamB' },
       { matchCode: 'UB-R2-M2', bracket: 'UPPER', round: 2, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'UB-FINALS', nextWinnerSlot: 'teamB', nextLoserMatch: 'LB-R2-M1', nextLoserSlot: 'teamB' },
       { matchCode: 'UB-FINALS', bracket: 'UPPER', round: 3, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'GRAND-FINALS', nextWinnerSlot: 'teamA', nextLoserMatch: 'LB-FINALS', nextLoserSlot: 'teamB' },
-
-      // LOWER BRACKET
       { matchCode: 'LB-R1-M1', bracket: 'LOWER', round: 1, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'LB-R2-M1', nextWinnerSlot: 'teamA' },
       { matchCode: 'LB-R1-M2', bracket: 'LOWER', round: 1, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'LB-R2-M2', nextWinnerSlot: 'teamA' },
       { matchCode: 'LB-R2-M1', bracket: 'LOWER', round: 2, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'LB-R3-M1', nextWinnerSlot: 'teamA' },
       { matchCode: 'LB-R2-M2', bracket: 'LOWER', round: 2, matchNumber: 2, bestOf: 3, nextWinnerMatch: 'LB-R3-M1', nextWinnerSlot: 'teamB' },
       { matchCode: 'LB-R3-M1', bracket: 'LOWER', round: 3, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'LB-FINALS', nextWinnerSlot: 'teamA' },
       { matchCode: 'LB-FINALS', bracket: 'LOWER', round: 4, matchNumber: 1, bestOf: 3, nextWinnerMatch: 'GRAND-FINALS', nextWinnerSlot: 'teamB' },
-
-      // GRAND FINALS & RESET (Bo5)
       { matchCode: 'GRAND-FINALS', bracket: 'GRAND_FINALS', round: 5, matchNumber: 1, bestOf: 5 },
       { matchCode: 'GF-RESET', bracket: 'GRAND_FINALS', round: 6, matchNumber: 2, bestOf: 5, status: 'PENDING' }
     ];
@@ -34,7 +28,6 @@ const ensureBracketExists = async () => {
   }
 };
 
-// Helper: Fisher-Yates Shuffle
 const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -44,7 +37,6 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
-// Map of slot numbers to match codes
 const slotMap = [
   { matchCode: 'UB-R1-M1', slot: 'teamA' },
   { matchCode: 'UB-R1-M1', slot: 'teamB' },
@@ -56,7 +48,21 @@ const slotMap = [
   { matchCode: 'UB-R1-M4', slot: 'teamB' }
 ];
 
-// Register Team (Auto-assigns to next available bracket slot)
+// Helper to broadcast full state via Socket.io
+const broadcastBracketUpdate = async (io) => {
+  const matches = await Match.find()
+    .populate('teamA')
+    .populate('teamB')
+    .populate('winner')
+    .populate('loser')
+    .sort({ matchCode: 1 });
+  const teams = await Team.find().sort({ seed: 1 });
+  const state = await TournamentState.findOne();
+
+  io.emit('bracketUpdated', { matches, teams, state });
+};
+
+// Register Team with instant WebSocket broadcast
 router.post('/register-team', async (req, res) => {
   try {
     await ensureBracketExists();
@@ -64,7 +70,7 @@ router.post('/register-team', async (req, res) => {
     const { name, tag, expLane, core, midLane, goldLane, roam, sixthMan } = req.body;
     const count = await Team.countDocuments();
     if (count >= 8) {
-      return res.status(400).json({ error: "Tournament is already full (8/8 Teams registered)." });
+      return res.status(400).json({ error: "Tournament is full (8/8 Teams registered)." });
     }
 
     const newTeam = new Team({
@@ -75,7 +81,6 @@ router.post('/register-team', async (req, res) => {
     });
     await newTeam.save();
 
-    // Instantly put into current bracket slot
     const targetSlot = slotMap[count];
     if (targetSlot) {
       await Match.findOneAndUpdate(
@@ -84,44 +89,41 @@ router.post('/register-team', async (req, res) => {
       );
     }
 
-    // When 8th team registers -> Trigger 5-minute countdown!
+    // Start 5-minute timer if 8th team registers
     if (count + 1 === 8) {
       let state = await TournamentState.findOne();
-      if (!state) {
-        state = new TournamentState();
-      }
+      if (!state) state = new TournamentState();
       state.timerStartedAt = new Date();
       state.isShuffled = false;
       await state.save();
     }
 
-    res.status(201).json({ message: "Team registered and placed on bracket!", team: newTeam });
+    // BROADCAST INSTANTLY TO ALL CONNECTED USERS
+    const io = req.app.get('io');
+    await broadcastBracketUpdate(io);
+
+    res.status(201).json({ message: "Team registered successfully!", team: newTeam });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Get Bracket Data (With Auto-Shuffle when 5-min timer ends)
+// Get Bracket Data
 router.get('/bracket', async (req, res) => {
   try {
     await ensureBracketExists();
 
     let state = await TournamentState.findOne();
-    if (!state) {
-      state = await TournamentState.create({});
-    }
+    if (!state) state = await TournamentState.create({});
 
     const teams = await Team.find().sort({ seed: 1 });
 
-    // Check if 5-minute timer expired and shuffle is needed
+    // Check timer expiration & auto-shuffle
     if (teams.length === 8 && state.timerStartedAt && !state.isShuffled) {
       const elapsedSeconds = (Date.now() - new Date(state.timerStartedAt).getTime()) / 1000;
-      
       if (elapsedSeconds >= state.countdownDurationSeconds) {
-        // Shuffle all 8 teams randomly
         const randomizedTeams = shuffleArray(teams);
 
-        // Assign randomized teams into Round 1 matches
         for (let i = 0; i < 8; i++) {
           const mapping = slotMap[i];
           await Match.findOneAndUpdate(
@@ -132,6 +134,9 @@ router.get('/bracket', async (req, res) => {
 
         state.isShuffled = true;
         await state.save();
+
+        const io = req.app.get('io');
+        await broadcastBracketUpdate(io);
       }
     }
 
