@@ -1,16 +1,19 @@
 import React from 'react';
-import { X, Trophy, Coins, ShieldCheck, Gamepad2, Clock, AlertTriangle, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, Trophy, Coins, ShieldCheck, Gamepad2, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export default function RulesModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-cyan-500/40 w-full max-w-2xl rounded-2xl p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
+    /* Outer Backdrop with single screen-edge scrollbar */
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto rules-scrollbar">
+      {/* Modal Container: Natural height without nested inner scroll */}
+      <div className="bg-slate-900 border border-cyan-500/40 w-full max-w-2xl rounded-2xl p-6 shadow-2xl relative my-8">
+        
         {/* Close Button */}
         <button 
           onClick={onClose} 
-          className="absolute right-4 top-4 text-slate-400 hover:text-white transition p-1 bg-slate-800 rounded-full"
+          className="absolute right-4 top-4 text-slate-400 hover:text-white transition p-1.5 bg-slate-800 hover:bg-slate-700 rounded-full"
         >
           <X size={18} />
         </button>
@@ -30,10 +33,11 @@ export default function RulesModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Modal Content Scroll Area with designated 'rules-scrollbar' */}
-        <div className="overflow-y-auto pr-3 mt-4 space-y-6 text-slate-300 text-sm rules-scrollbar">
+        {/* Modal Content: Flows naturally (no nested scrollbar) */}
+        <div className="mt-5 space-y-6 text-slate-300 text-sm">
+          
           {/* Prize & Buy-in Cards */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 p-3.5 rounded-xl flex items-center gap-3">
               <Trophy className="text-yellow-400 w-8 h-8 flex-shrink-0" />
               <div>
@@ -132,11 +136,11 @@ export default function RulesModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="mt-4 pt-3 border-t border-slate-800 text-center">
+        {/* Modal Footer Button */}
+        <div className="mt-6 pt-4 border-t border-slate-800">
           <button
             onClick={onClose}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition duration-200"
+            className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition duration-200 shadow-lg shadow-cyan-500/20"
           >
             I Understand the Rules
           </button>
