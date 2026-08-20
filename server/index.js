@@ -13,13 +13,17 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
+// API Routes
 app.use('/api', tournamentRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Serve Frontend in Production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
+  
+  // Universal catch-all handler for React SPA routing
+  app.use((req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/dist/index.html'));
   });
 }
 
