@@ -30,8 +30,8 @@ export default function RulesModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Modal Content Scroll Area */}
-        <div className="overflow-y-auto pr-2 mt-4 space-y-6 text-slate-300 text-sm">
+        {/* Modal Content Scroll Area with designated 'rules-scrollbar' */}
+        <div className="overflow-y-auto pr-3 mt-4 space-y-6 text-slate-300 text-sm rules-scrollbar">
           {/* Prize & Buy-in Cards */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 p-3.5 rounded-xl flex items-center gap-3">
