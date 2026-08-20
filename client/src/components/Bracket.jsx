@@ -20,10 +20,9 @@ const MATCH_ORDER = [
   'GF-RESET'
 ];
 
-export default function Bracket({ matches, isAdmin, onScoreChange }) {
+export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam }) {
   const getMatches = (bracketName, roundNum) => matches.filter(m => m.bracket === bracketName && m.round === roundNum);
 
-  // Automatically determine the current active match in tournament order
   const currentActiveMatchCode = MATCH_ORDER.find(code => {
     const match = matches.find(m => m.matchCode === code);
     return match && match.status !== 'COMPLETED' && match.teamA && match.teamB;
@@ -54,6 +53,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
@@ -70,6 +70,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
@@ -86,6 +87,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
@@ -101,7 +103,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
         </div>
 
         <div className="flex flex-row gap-10 min-w-max">
-          {/* LB Round 1 */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Round 1 (BO3)</p>
             <div className="flex flex-col justify-around h-[460px]">
@@ -112,12 +113,12 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
           </div>
 
-          {/* LB Quarter Finals */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Quarter Finals (BO3)</p>
             <div className="flex flex-col justify-around h-[460px]">
@@ -128,12 +129,12 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
           </div>
 
-          {/* LB Semi Finals */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Semi Finals (BO3)</p>
             <div className="flex flex-col justify-center h-[460px]">
@@ -144,12 +145,12 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
           </div>
 
-          {/* LB Finals */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Finals (BO3)</p>
             <div className="flex flex-col justify-center h-[460px]">
@@ -160,6 +161,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               ))}
             </div>
@@ -182,6 +184,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                 isCurrentMatch={grandFinalMatch.matchCode === currentActiveMatchCode}
                 isAdmin={isAdmin}
                 onScoreChange={onScoreChange}
+                onSelectTeam={onSelectTeam}
               />
             </div>
 
@@ -195,6 +198,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange }) {
                   isCurrentMatch={gfResetMatch.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
+                  onSelectTeam={onSelectTeam}
                 />
               </div>
             )}

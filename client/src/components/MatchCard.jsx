@@ -1,7 +1,7 @@
 import React from 'react';
-import { Trophy, Flame, Plus, Minus } from 'lucide-react';
+import { Trophy, Flame, Plus, Minus, Users } from 'lucide-react';
 
-export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChange }) {
+export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChange, onSelectTeam }) {
   const isTeamAWinner = match.winner && match.teamA && match.winner._id === match.teamA._id;
   const isTeamBWinner = match.winner && match.teamB && match.winner._id === match.teamB._id;
   const isLive = match.status === 'ONGOING' && (match.scoreA > 0 || match.scoreB > 0);
@@ -53,9 +53,16 @@ export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChang
               ? 'bg-slate-800/80 text-white font-semibold' 
               : 'bg-slate-800/40 text-slate-300'
         }`}>
-          <span className="truncate max-w-[120px] text-xs">
-            {match.teamA?.name || <span className="text-slate-500 italic">TBD</span>}
-          </span>
+          {/* Clickable Team Name to Open Roster */}
+          <button
+            onClick={() => match.teamA && onSelectTeam && onSelectTeam(match.teamA)}
+            disabled={!match.teamA}
+            className="truncate max-w-[125px] text-xs text-left hover:text-cyan-400 transition flex items-center gap-1 group"
+            title={match.teamA ? "Click to view roster" : ""}
+          >
+            <span className="truncate">{match.teamA?.name || <span className="text-slate-500 italic">TBD</span>}</span>
+            {match.teamA && <Users size={11} className="text-slate-500 group-hover:text-cyan-400 flex-shrink-0" />}
+          </button>
 
           <div className="flex items-center gap-1.5">
             <span className={`font-mono text-sm px-2 py-0.5 rounded ${
@@ -64,7 +71,7 @@ export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChang
               {match.scoreA}
             </span>
 
-            {/* Direct Score Buttons for Team A */}
+            {/* Direct Score Buttons */}
             {canScore && (
               <div className="flex items-center gap-1 pl-1">
                 {match.scoreA > 0 && (
@@ -98,9 +105,16 @@ export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChang
               ? 'bg-slate-800/80 text-white font-semibold' 
               : 'bg-slate-800/40 text-slate-300'
         }`}>
-          <span className="truncate max-w-[120px] text-xs">
-            {match.teamB?.name || <span className="text-slate-500 italic">TBD</span>}
-          </span>
+          {/* Clickable Team Name to Open Roster */}
+          <button
+            onClick={() => match.teamB && onSelectTeam && onSelectTeam(match.teamB)}
+            disabled={!match.teamB}
+            className="truncate max-w-[125px] text-xs text-left hover:text-cyan-400 transition flex items-center gap-1 group"
+            title={match.teamB ? "Click to view roster" : ""}
+          >
+            <span className="truncate">{match.teamB?.name || <span className="text-slate-500 italic">TBD</span>}</span>
+            {match.teamB && <Users size={11} className="text-slate-500 group-hover:text-cyan-400 flex-shrink-0" />}
+          </button>
 
           <div className="flex items-center gap-1.5">
             <span className={`font-mono text-sm px-2 py-0.5 rounded ${
@@ -109,7 +123,7 @@ export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChang
               {match.scoreB}
             </span>
 
-            {/* Direct Score Buttons for Team B */}
+            {/* Direct Score Buttons */}
             {canScore && (
               <div className="flex items-center gap-1 pl-1">
                 {match.scoreB > 0 && (

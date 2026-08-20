@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { X, UserPlus } from 'lucide-react';
+import { ExpLaneIcon, CoreIcon, MidLaneIcon, GoldLaneIcon, RoamIcon, SixthManIcon } from './RoleIcons';
 
 export default function RegisterModal({ isOpen, onClose, onRegistered }) {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ export default function RegisterModal({ isOpen, onClose, onRegistered }) {
     setMessage('');
     try {
       await axios.post('/api/register-team', formData);
-      setMessage('Team successfully registered!');
+      setMessage('Team registered successfully!');
       setTimeout(() => {
         onRegistered();
         onClose();
@@ -30,8 +31,8 @@ export default function RegisterModal({ isOpen, onClose, onRegistered }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto rules-scrollbar">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative my-8">
         <button onClick={onClose} className="absolute right-4 top-4 text-slate-400 hover:text-white">
           <X size={20} />
         </button>
@@ -51,54 +52,84 @@ export default function RegisterModal({ isOpen, onClose, onRegistered }) {
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2">
               <label className="text-xs text-slate-400 font-semibold">Team Name</label>
-              <input required placeholder="e.g. Apex Predators" className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-white focus:border-cyan-500 outline-none"
+              <input required placeholder="e.g. Blacklist Echo" className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-white focus:border-cyan-500 outline-none mt-0.5"
                 value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
             </div>
             <div>
-              <label className="text-xs text-slate-400 font-semibold">Team Tag</label>
-              <input required placeholder="APEX" maxLength={5} className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-white uppercase focus:border-cyan-500 outline-none"
+              <label className="text-xs text-slate-400 font-semibold">Tag</label>
+              <input required placeholder="ECHO" maxLength={5} className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm text-white uppercase focus:border-cyan-500 outline-none mt-0.5"
                 value={formData.tag} onChange={e => setFormData({ ...formData, tag: e.target.value })} />
             </div>
           </div>
 
           <div className="border-t border-slate-800 my-2 pt-2">
-            <p className="text-xs font-bold text-cyan-400 mb-2 uppercase">Official 6-Player Lineup</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[11px] text-slate-400">EXP Lane</label>
-                <input required placeholder="Player Name" className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-sm text-white focus:border-cyan-500 outline-none"
-                  value={formData.expLane} onChange={e => setFormData({ ...formData, expLane: e.target.value })} />
+            <p className="text-xs font-bold text-cyan-400 mb-2 uppercase">Official Role Positions</p>
+            
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* EXP */}
+              <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                <ExpLaneIcon className="w-7 h-7 flex-shrink-0" />
+                <div className="w-full">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block">EXP Lane</label>
+                  <input required placeholder="IGN" className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-cyan-500 outline-none mt-0.5"
+                    value={formData.expLane} onChange={e => setFormData({ ...formData, expLane: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="text-[11px] text-slate-400">Core (Jungler)</label>
-                <input required placeholder="Player Name" className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-sm text-white focus:border-cyan-500 outline-none"
-                  value={formData.core} onChange={e => setFormData({ ...formData, core: e.target.value })} />
+
+              {/* CORE */}
+              <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                <CoreIcon className="w-7 h-7 flex-shrink-0" />
+                <div className="w-full">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block">Core (Jungle)</label>
+                  <input required placeholder="IGN" className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-cyan-500 outline-none mt-0.5"
+                    value={formData.core} onChange={e => setFormData({ ...formData, core: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="text-[11px] text-slate-400">Mid Lane</label>
-                <input required placeholder="Player Name" className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-sm text-white focus:border-cyan-500 outline-none"
-                  value={formData.midLane} onChange={e => setFormData({ ...formData, midLane: e.target.value })} />
+
+              {/* MID */}
+              <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                <MidLaneIcon className="w-7 h-7 flex-shrink-0" />
+                <div className="w-full">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block">Mid Lane</label>
+                  <input required placeholder="IGN" className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-cyan-500 outline-none mt-0.5"
+                    value={formData.midLane} onChange={e => setFormData({ ...formData, midLane: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="text-[11px] text-slate-400">Gold Lane</label>
-                <input required placeholder="Player Name" className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-sm text-white focus:border-cyan-500 outline-none"
-                  value={formData.goldLane} onChange={e => setFormData({ ...formData, goldLane: e.target.value })} />
+
+              {/* GOLD */}
+              <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                <GoldLaneIcon className="w-7 h-7 flex-shrink-0" />
+                <div className="w-full">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block">Gold Lane</label>
+                  <input required placeholder="IGN" className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-cyan-500 outline-none mt-0.5"
+                    value={formData.goldLane} onChange={e => setFormData({ ...formData, goldLane: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="text-[11px] text-slate-400">Roamer</label>
-                <input required placeholder="Player Name" className="w-full bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-sm text-white focus:border-cyan-500 outline-none"
-                  value={formData.roam} onChange={e => setFormData({ ...formData, roam: e.target.value })} />
+
+              {/* ROAM */}
+              <div className="bg-slate-800/50 p-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                <RoamIcon className="w-7 h-7 flex-shrink-0" />
+                <div className="w-full">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase block">Roamer</label>
+                  <input required placeholder="IGN" className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-cyan-500 outline-none mt-0.5"
+                    value={formData.roam} onChange={e => setFormData({ ...formData, roam: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="text-[11px] text-yellow-400">6th Man (Sub)</label>
-                <input required placeholder="Substitute Player" className="w-full bg-slate-800 border border-yellow-500/40 rounded px-2.5 py-1 text-sm text-white focus:border-yellow-400 outline-none"
-                  value={formData.sixthMan} onChange={e => setFormData({ ...formData, sixthMan: e.target.value })} />
+
+              {/* 6TH MAN */}
+              <div className="bg-slate-800/50 p-2 rounded-xl border border-orange-500/30 flex items-center gap-2">
+                <SixthManIcon className="w-7 h-7 flex-shrink-0" />
+                <div className="w-full">
+                  <label className="text-[10px] text-orange-400 font-bold uppercase block">6th Man (Sub)</label>
+                  <input required placeholder="IGN" className="w-full bg-slate-900 border border-orange-500/40 rounded px-2 py-0.5 text-xs text-white focus:border-orange-400 outline-none mt-0.5"
+                    value={formData.sixthMan} onChange={e => setFormData({ ...formData, sixthMan: e.target.value })} />
+                </div>
               </div>
             </div>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full mt-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2 rounded-xl transition shadow-lg shadow-cyan-500/20">
-            {loading ? 'Registering...' : 'Complete Registration'}
+          <button type="submit" disabled={loading} className="w-full mt-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-cyan-500/20">
+            {loading ? 'Registering...' : 'Complete Team Registration'}
           </button>
         </form>
       </div>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { Trophy, Swords, Shield, PlusCircle, BookOpen, Sparkles, Timer, Shuffle, Radio, Lock, Unlock } from 'lucide-react';
+import { Trophy, Swords, Shield, PlusCircle, BookOpen, Sparkles, Timer, Shuffle, Radio, Unlock, Users } from 'lucide-react';
 import Bracket from './components/Bracket';
 import RegisterModal from './components/RegisterModal';
 import RulesModal from './components/RulesModal';
+import TeamRosterModal from './components/TeamRosterModal';
 
 export default function App() {
   const [matches, setMatches] = useState([]);
@@ -12,12 +13,16 @@ export default function App() {
   const [tournamentState, setTournamentState] = useState(null);
   const [secondsRemaining, setSecondsRemaining] = useState(null);
 
-  // Admin Mode (Toggle directly to enable "+" buttons)
+  // Admin Mode
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminKey, setAdminKey] = useState(localStorage.getItem('ihs_admin_key') || '');
 
+  // Modals
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
+  const [isRosterModalOpen, setIsRosterModalOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+
   const [secretClicks, setSecretClicks] = useState(0);
 
   const fetchBracket = useCallback(async () => {
@@ -27,7 +32,7 @@ export default function App() {
       setTeams(res.data.teams);
       setTournamentState(res.data.state);
     } catch (err) {
-      console.error("Initial bracket fetch error:", err);
+      console.error("Bracket fetch error:", err);
     }
   }, []);
 
@@ -47,7 +52,7 @@ export default function App() {
     return () => socket.disconnect();
   }, [fetchBracket]);
 
-  // 2. Live Countdown Timer
+  // 2. 5-Minute Timer
   useEffect(() => {
     if (!tournamentState?.timerStartedAt || tournamentState?.isShuffled) {
       setSecondsRemaining(null);
@@ -70,7 +75,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [tournamentState, fetchBracket]);
 
-  // 3. Admin Shortcut: Ctrl + Shift + A or 5 clicks
+  // 3. Admin Shortcut: Ctrl + Shift + A
   const triggerAdminPrompt = () => {
     if (isAdmin) {
       setIsAdmin(false);
@@ -112,7 +117,7 @@ export default function App() {
     });
   };
 
-  // Direct In-Card Score Modifier Handler
+  // Direct In-Card Score Modifier
   const handleScoreChange = async (matchCode, newScoreA, newScoreB) => {
     try {
       await axios.put(`/api/admin/update-score/${matchCode}`, 
@@ -121,6 +126,17 @@ export default function App() {
       );
     } catch (err) {
       alert(err.response?.data?.error || "Failed to update score.");
+    }
+  };
+
+  // Open Team Roster Viewer
+  const handleOpenRoster = (team) => {
+    if (team) {
+      setSelectedTeam(team);
+      setIsRosterModalOpen(true);
+    } else if (teams.length > 0) {
+      setSelectedTeam(teams[0]);
+      setIsRosterModalOpen(true);
     }
   };
 
@@ -154,34 +170,42 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Marshal Status Badge */}
+          <div className="flex items-center gap-2.5">
             {isAdmin && (
               <button
                 onClick={triggerAdminPrompt}
                 className="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-3 py-1.5 rounded-xl hover:bg-amber-900/50 transition"
               >
-                <Unlock size={13} /> Marshal Mode Active
+                <Unlock size={13} /> Marshal Active
               </button>
             )}
 
+            {/* View Teams / Rosters Button */}
+            <button
+              onClick={() => handleOpenRoster(null)}
+              disabled={teams.length === 0}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs uppercase font-bold px-3 py-2 rounded-xl border border-slate-700 transition"
+            >
+              <Users size={14} className="text-cyan-400" /> Rosters ({teams.length})
+            </button>
+
             <button
               onClick={() => setIsRulesOpen(true)}
-              className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs uppercase font-bold px-3.5 py-2 rounded-xl border border-slate-700 transition"
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs uppercase font-bold px-3 py-2 rounded-xl border border-slate-700 transition"
             >
-              <BookOpen size={15} className="text-yellow-400" /> Rules & Prize
+              <BookOpen size={14} className="text-yellow-400" /> Rules
             </button>
 
             <button
               onClick={() => setIsRegisterOpen(true)}
               disabled={teams.length >= 8}
-              className={`flex items-center gap-2 text-xs uppercase font-extrabold px-4 py-2 rounded-xl transition shadow-md ${
+              className={`flex items-center gap-1.5 text-xs uppercase font-extrabold px-3.5 py-2 rounded-xl transition shadow-md ${
                 teams.length >= 8 
                   ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
                   : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20'
               }`}
             >
-              <PlusCircle size={16} /> {teams.length >= 8 ? 'Roster Full (8/8)' : `Register Team (${teams.length}/8)`}
+              <PlusCircle size={15} /> {teams.length >= 8 ? 'Full (8/8)' : `Register (${teams.length}/8)`}
             </button>
           </div>
         </div>
@@ -189,7 +213,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
-        {/* 5-Minute Countdown Banner */}
+        {/* 5-Minute Timer Banner */}
         {secondsRemaining !== null && secondsRemaining > 0 && !tournamentState?.isShuffled && (
           <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-yellow-950/80 via-slate-900 to-cyan-950/80 border border-yellow-500/50 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse">
             <div className="flex items-center gap-3">
@@ -258,13 +282,24 @@ export default function App() {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
-            <Shield className="text-cyan-400 w-8 h-8" />
-            <div>
-              <p className="text-xs text-slate-400">Registered Teams</p>
-              <p className="text-lg font-bold text-white">{teams.length} / 8 Teams</p>
+          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="text-cyan-400 w-8 h-8" />
+              <div>
+                <p className="text-xs text-slate-400">Registered Teams</p>
+                <p className="text-lg font-bold text-white">{teams.length} / 8 Teams</p>
+              </div>
             </div>
+            {teams.length > 0 && (
+              <button
+                onClick={() => handleOpenRoster(null)}
+                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition"
+              >
+                Inspect Lineups →
+              </button>
+            )}
           </div>
+
           <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
             <Swords className="text-yellow-400 w-8 h-8" />
             <div>
@@ -274,11 +309,12 @@ export default function App() {
           </div>
         </div>
 
-        {/* Bracket Viewer with Direct In-Card Scoring */}
+        {/* Live Bracket */}
         <Bracket 
           matches={matches} 
           isAdmin={isAdmin}
           onScoreChange={handleScoreChange}
+          onSelectTeam={handleOpenRoster}
         />
       </main>
 
@@ -295,6 +331,13 @@ export default function App() {
       {/* Modals */}
       <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
       <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} onRegistered={fetchBracket} />
+      <TeamRosterModal 
+        isOpen={isRosterModalOpen} 
+        onClose={() => setIsRosterModalOpen(false)} 
+        selectedTeam={selectedTeam}
+        allTeams={teams}
+        onSelectTeam={setSelectedTeam}
+      />
     </div>
   );
 }
