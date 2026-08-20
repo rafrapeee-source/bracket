@@ -8,38 +8,41 @@ body {
   color: #f3f4f6;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch action optimization to prevent mobile double-tap zoom lag */
+button, a, input, select {
+  touch-action: manipulation;
+}
+
+/* Smooth mobile scrolling */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* ================================================= */
-/* DESIGNATED CUSTOM SCROLLBAR FOR RULES MODAL       */
+/* CUSTOM SLIM SCROLLBAR                             */
 /* ================================================= */
 .rules-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #06b6d4 rgba(15, 23, 42, 0.9);
 }
 
-/* Width */
 .rules-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 
-/* Track (Background) */
 .rules-scrollbar::-webkit-scrollbar-track {
   background: rgba(15, 23, 42, 0.9);
   border-radius: 9999px;
-  margin: 6px 0;
+  margin: 4px 0;
 }
 
-/* Handle / Thumb (Cyan Gradient with Glow) */
 .rules-scrollbar::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #0891b2, #06b6d4);
   border-radius: 9999px;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
-  transition: all 0.2s ease-in-out;
-}
-
-/* Handle Hover */
-.rules-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #06b6d4, #22d3ee);
-  box-shadow: 0 0 14px rgba(34, 211, 238, 0.8);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
 }

@@ -13,11 +13,9 @@ export default function App() {
   const [tournamentState, setTournamentState] = useState(null);
   const [secondsRemaining, setSecondsRemaining] = useState(null);
 
-  // Admin Mode
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminKey, setAdminKey] = useState(localStorage.getItem('ihs_admin_key') || '');
 
-  // Modals
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [isRosterModalOpen, setIsRosterModalOpen] = useState(false);
@@ -36,7 +34,6 @@ export default function App() {
     }
   }, []);
 
-  // 1. Initial Load & WebSocket Live Sync
   useEffect(() => {
     fetchBracket();
 
@@ -52,7 +49,6 @@ export default function App() {
     return () => socket.disconnect();
   }, [fetchBracket]);
 
-  // 2. 5-Minute Timer
   useEffect(() => {
     if (!tournamentState?.timerStartedAt || tournamentState?.isShuffled) {
       setSecondsRemaining(null);
@@ -75,7 +71,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, [tournamentState, fetchBracket]);
 
-  // 3. Admin Shortcut: Ctrl + Shift + A
   const triggerAdminPrompt = () => {
     if (isAdmin) {
       setIsAdmin(false);
@@ -89,7 +84,7 @@ export default function App() {
       setIsAdmin(true);
       setAdminKey(key);
       localStorage.setItem('ihs_admin_key', key);
-      alert("Marshal Mode Activated! You can now click '+' directly on the active match card.");
+      alert("Marshal Mode Activated!");
     } else if (key !== null) {
       alert("Invalid Passkey.");
     }
@@ -117,7 +112,6 @@ export default function App() {
     });
   };
 
-  // Direct In-Card Score Modifier
   const handleScoreChange = async (matchCode, newScoreA, newScoreB) => {
     try {
       await axios.put(`/api/admin/update-score/${matchCode}`, 
@@ -129,7 +123,6 @@ export default function App() {
     }
   };
 
-  // Open Team Roster Viewer
   const handleOpenRoster = (team) => {
     if (team) {
       setSelectedTeam(team);
@@ -148,91 +141,92 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={handleSecretClick}>
-            <div className="p-2 bg-gradient-to-tr from-cyan-600 to-blue-600 rounded-xl shadow-lg shadow-cyan-500/20">
-              <Trophy className="text-white w-6 h-6" />
+      {/* Responsive Header */}
+      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2.5">
+          {/* Logo */}
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" onClick={handleSecretClick}>
+            <div className="p-1.5 sm:p-2 bg-gradient-to-tr from-cyan-600 to-blue-600 rounded-xl shadow-lg shadow-cyan-500/20">
+              <Trophy className="text-white w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black uppercase tracking-wider bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-base sm:text-xl font-black uppercase tracking-wider bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
                   IHS Tournament
                 </h1>
-                <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase animate-pulse">
-                  <Radio size={10} /> Live Sync
+                <span className="flex items-center gap-1 text-[9px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-bold uppercase animate-pulse">
+                  <Radio size={9} /> Live
                 </span>
               </div>
-              <p className="text-[10px] text-cyan-400 font-semibold tracking-widest uppercase">
-                Official Double Elimination Bracket
+              <p className="text-[9px] sm:text-[10px] text-cyan-400 font-semibold tracking-widest uppercase">
+                Double Elimination Bracket
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto">
             {isAdmin && (
               <button
                 onClick={triggerAdminPrompt}
-                className="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-3 py-1.5 rounded-xl hover:bg-amber-900/50 transition"
+                className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-2.5 py-1.5 rounded-xl hover:bg-amber-900/50 transition"
               >
-                <Unlock size={13} /> Marshal Active
+                <Unlock size={12} /> <span className="hidden sm:inline">Marshal Active</span>
               </button>
             )}
 
-            {/* View Teams / Rosters Button */}
             <button
               onClick={() => handleOpenRoster(null)}
               disabled={teams.length === 0}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs uppercase font-bold px-3 py-2 rounded-xl border border-slate-700 transition"
+              className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs uppercase font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-700 transition"
             >
-              <Users size={14} className="text-cyan-400" /> Rosters ({teams.length})
+              <Users size={13} className="text-cyan-400" /> <span className="hidden sm:inline">Rosters</span> ({teams.length})
             </button>
 
             <button
               onClick={() => setIsRulesOpen(true)}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs uppercase font-bold px-3 py-2 rounded-xl border border-slate-700 transition"
+              className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs uppercase font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-700 transition"
             >
-              <BookOpen size={14} className="text-yellow-400" /> Rules
+              <BookOpen size={13} className="text-yellow-400" /> Rules
             </button>
 
             <button
               onClick={() => setIsRegisterOpen(true)}
               disabled={teams.length >= 8}
-              className={`flex items-center gap-1.5 text-xs uppercase font-extrabold px-3.5 py-2 rounded-xl transition shadow-md ${
+              className={`flex items-center gap-1 text-[11px] sm:text-xs uppercase font-extrabold px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition shadow-md ${
                 teams.length >= 8 
                   ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
                   : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-cyan-500/20'
               }`}
             >
-              <PlusCircle size={15} /> {teams.length >= 8 ? 'Full (8/8)' : `Register (${teams.length}/8)`}
+              <PlusCircle size={14} /> {teams.length >= 8 ? 'Full' : `Register (${teams.length}/8)`}
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex-1 w-full">
         {/* 5-Minute Timer Banner */}
         {secondsRemaining !== null && secondsRemaining > 0 && !tournamentState?.isShuffled && (
-          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-yellow-950/80 via-slate-900 to-cyan-950/80 border border-yellow-500/50 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-yellow-500/20 text-yellow-400 rounded-xl border border-yellow-500/40">
-                <Timer size={26} />
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-yellow-950/80 via-slate-900 to-cyan-950/80 border border-yellow-500/50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-pulse">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <div className="p-2 sm:p-3 bg-yellow-500/20 text-yellow-400 rounded-xl border border-yellow-500/40">
+                <Timer size={22} />
               </div>
               <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-yellow-400 block">
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-yellow-400 block">
                   All 8 Teams Registered!
                 </span>
-                <h3 className="text-sm font-bold text-white">
-                  Bracket matchups will randomly shuffle when the timer expires.
+                <h3 className="text-xs sm:text-sm font-bold text-white">
+                  Bracket matchups will randomly shuffle when timer expires.
                 </h3>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-950 px-5 py-2 rounded-xl border border-yellow-500/40">
+            <div className="flex items-center gap-2 bg-slate-950 px-4 py-1.5 rounded-xl border border-yellow-500/40">
               <Shuffle className="text-cyan-400 w-4 h-4 animate-spin" />
-              <span className="font-mono text-xl font-black text-yellow-400 tracking-widest">
+              <span className="font-mono text-lg sm:text-xl font-black text-yellow-400 tracking-widest">
                 {formatTimer(secondsRemaining)}
               </span>
             </div>
@@ -241,12 +235,12 @@ export default function App() {
 
         {/* Post-Shuffle Confirmation */}
         {tournamentState?.isShuffled && (
-          <div className="mb-6 px-4 py-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-xs text-cyan-300">
+          <div className="mb-4 sm:mb-6 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-[11px] sm:text-xs text-cyan-300">
             <span className="flex items-center gap-2 font-semibold">
-              <Shuffle size={14} className="text-cyan-400" /> Matchups have been randomly generated and locked in!
+              <Shuffle size={14} className="text-cyan-400" /> Matchups randomly generated and locked in!
             </span>
-            <span className="text-[10px] uppercase font-bold bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded">
-              Official Seeds Active
+            <span className="text-[9px] uppercase font-bold bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded">
+              Active
             </span>
           </div>
         )}
@@ -254,62 +248,62 @@ export default function App() {
         {/* Interactive Rules Banner */}
         <div 
           onClick={() => setIsRulesOpen(true)}
-          className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900/90 to-yellow-950/40 border border-cyan-500/30 hover:border-cyan-400/60 transition cursor-pointer shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 group"
+          className="mb-6 sm:mb-8 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900/90 to-yellow-950/40 border border-cyan-500/30 hover:border-cyan-400/60 transition cursor-pointer shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 group"
         >
-          <div className="flex items-center gap-3.5">
-            <div className="p-2.5 bg-yellow-500/20 border border-yellow-500/30 rounded-xl text-yellow-400 group-hover:scale-105 transition">
-              <Sparkles size={22} />
+          <div className="flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-yellow-500/20 border border-yellow-500/30 rounded-xl text-yellow-400 group-hover:scale-105 transition">
+              <Sparkles size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded border border-yellow-400/30">
-                  Prize Pool ₱3,300
+                <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded border border-yellow-400/30">
+                  Prize ₱3,300
                 </span>
-                <span className="text-xs font-semibold text-slate-400">
-                  Fearless Draft • Best of 3 (BO5 Finals)
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-400">
+                  Fearless Draft • BO3 (BO5 Finals)
                 </span>
               </div>
-              <h3 className="text-sm font-bold text-white mt-0.5">
-                Official Tournament Guidelines & Regulations <span className="text-cyan-400 text-xs group-hover:underline">Click to view full rulebook →</span>
+              <h3 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                Official Tournament Guidelines <span className="text-cyan-400 text-[11px] group-hover:underline">View Rulebook →</span>
               </h3>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-cyan-400 bg-slate-900/80 px-3.5 py-1.5 rounded-lg border border-slate-700">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-cyan-400 bg-slate-900/80 px-3.5 py-1.5 rounded-lg border border-slate-700">
             <BookOpen size={14} /> View Rules
           </div>
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-slate-900/60 border border-slate-800 p-3.5 sm:p-4 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Shield className="text-cyan-400 w-8 h-8" />
+              <Shield className="text-cyan-400 w-7 h-7 sm:w-8 sm:h-8" />
               <div>
-                <p className="text-xs text-slate-400">Registered Teams</p>
-                <p className="text-lg font-bold text-white">{teams.length} / 8 Teams</p>
+                <p className="text-[11px] sm:text-xs text-slate-400">Registered Teams</p>
+                <p className="text-base sm:text-lg font-bold text-white">{teams.length} / 8 Teams</p>
               </div>
             </div>
             {teams.length > 0 && (
               <button
                 onClick={() => handleOpenRoster(null)}
-                className="text-xs font-bold text-cyan-400 hover:text-cyan-300 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition"
+                className="text-[11px] sm:text-xs font-bold text-cyan-400 hover:text-cyan-300 bg-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700 transition"
               >
-                Inspect Lineups →
+                Lineups →
               </button>
             )}
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
-            <Swords className="text-yellow-400 w-8 h-8" />
+          <div className="bg-slate-900/60 border border-slate-800 p-3.5 sm:p-4 rounded-xl flex items-center gap-3">
+            <Swords className="text-yellow-400 w-7 h-7 sm:w-8 sm:h-8" />
             <div>
-              <p className="text-xs text-slate-400">Tournament Format</p>
-              <p className="text-lg font-bold text-white">Double Elimination (BO3 • BO5 Finals)</p>
+              <p className="text-[11px] sm:text-xs text-slate-400">Format</p>
+              <p className="text-base sm:text-lg font-bold text-white">Double Elimination (BO3 / BO5)</p>
             </div>
           </div>
         </div>
 
-        {/* Live Bracket */}
+        {/* Responsive Bracket */}
         <Bracket 
           matches={matches} 
           isAdmin={isAdmin}
