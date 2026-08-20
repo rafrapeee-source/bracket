@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { Trophy, Swords, Shield, PlusCircle, BookOpen, Sparkles, Timer, Shuffle, Radio } from 'lucide-react';
+import { Trophy, Swords, Shield, PlusCircle, BookOpen, Sparkles, Timer, Shuffle, Radio, Lock, Unlock } from 'lucide-react';
 import Bracket from './components/Bracket';
 import RegisterModal from './components/RegisterModal';
-import AdminModal from './components/AdminModal';
 import RulesModal from './components/RulesModal';
 
 export default function App() {
@@ -13,8 +12,11 @@ export default function App() {
   const [tournamentState, setTournamentState] = useState(null);
   const [secondsRemaining, setSecondsRemaining] = useState(null);
 
+  // Admin Mode (Toggle directly to enable "+" buttons)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminKey, setAdminKey] = useState(localStorage.getItem('ihs_admin_key') || '');
+
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [secretClicks, setSecretClicks] = useState(0);
 
@@ -33,10 +35,7 @@ export default function App() {
   useEffect(() => {
     fetchBracket();
 
-    // Connect to WebSocket server
     const socket = io();
-
-    // Listen for instant live updates (registrations, live scores, bracket progress)
     socket.on('bracketUpdated', (data) => {
       if (data) {
         setMatches(data.matches);
@@ -45,9 +44,7 @@ export default function App() {
       }
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, [fetchBracket]);
 
   // 2. Live Countdown Timer
@@ -73,26 +70,58 @@ export default function App() {
     return () => clearInterval(interval);
   }, [tournamentState, fetchBracket]);
 
-  // 3. Admin Shortcut: Ctrl + Shift + A
+  // 3. Admin Shortcut: Ctrl + Shift + A or 5 clicks
+  const triggerAdminPrompt = () => {
+    if (isAdmin) {
+      setIsAdmin(false);
+      localStorage.removeItem('ihs_admin_key');
+      alert("Marshal Mode Deactivated.");
+      return;
+    }
+
+    const key = prompt("Enter Marshal Secret Key to enable on-card scoring (+):");
+    if (key === "IHS_ADMIN_2025") {
+      setIsAdmin(true);
+      setAdminKey(key);
+      localStorage.setItem('ihs_admin_key', key);
+      alert("Marshal Mode Activated! You can now click '+' directly on the active match card.");
+    } else if (key !== null) {
+      alert("Invalid Passkey.");
+    }
+  };
+
   useEffect(() => {
+    if (adminKey === "IHS_ADMIN_2025") setIsAdmin(true);
+
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
-        setIsAdminOpen(true);
+        triggerAdminPrompt();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [adminKey, isAdmin]);
 
-  // 4. Admin 5 clicks on Logo
   const handleSecretClick = () => {
     setSecretClicks(prev => {
       if (prev + 1 >= 5) {
-        setIsAdminOpen(true);
+        triggerAdminPrompt();
         return 0;
       }
       return prev + 1;
     });
+  };
+
+  // Direct In-Card Score Modifier Handler
+  const handleScoreChange = async (matchCode, newScoreA, newScoreB) => {
+    try {
+      await axios.put(`/api/admin/update-score/${matchCode}`, 
+        { scoreA: newScoreA, scoreB: newScoreB },
+        { headers: { 'x-admin-key': adminKey || "IHS_ADMIN_2025" } }
+      );
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to update score.");
+    }
   };
 
   const formatTimer = (seconds) => {
@@ -126,6 +155,16 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Marshal Status Badge */}
+            {isAdmin && (
+              <button
+                onClick={triggerAdminPrompt}
+                className="flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-3 py-1.5 rounded-xl hover:bg-amber-900/50 transition"
+              >
+                <Unlock size={13} /> Marshal Mode Active
+              </button>
+            )}
+
             <button
               onClick={() => setIsRulesOpen(true)}
               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs uppercase font-bold px-3.5 py-2 rounded-xl border border-slate-700 transition"
@@ -150,8 +189,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
-        
-        {/* Active 5-Minute Countdown Banner */}
+        {/* 5-Minute Countdown Banner */}
         {secondsRemaining !== null && secondsRemaining > 0 && !tournamentState?.isShuffled && (
           <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-yellow-950/80 via-slate-900 to-cyan-950/80 border border-yellow-500/50 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse">
             <div className="flex items-center gap-3">
@@ -177,7 +215,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Post-Shuffle Confirmation Banner */}
+        {/* Post-Shuffle Confirmation */}
         {tournamentState?.isShuffled && (
           <div className="mb-6 px-4 py-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-xs text-cyan-300">
             <span className="flex items-center gap-2 font-semibold">
@@ -218,7 +256,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 2 Clean Stat Cards */}
+        {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
             <Shield className="text-cyan-400 w-8 h-8" />
@@ -236,24 +274,27 @@ export default function App() {
           </div>
         </div>
 
-        {/* Live Bracket */}
-        <Bracket matches={matches} />
+        {/* Bracket Viewer with Direct In-Card Scoring */}
+        <Bracket 
+          matches={matches} 
+          isAdmin={isAdmin}
+          onScoreChange={handleScoreChange}
+        />
       </main>
 
       {/* Footer */}
       <footer className="border-t border-slate-800/50 py-6 text-center text-xs text-slate-600">
         <p>© 2025 IHS Tournament. All rights reserved.</p>
         <span 
-          onClick={() => setIsAdminOpen(true)} 
+          onClick={triggerAdminPrompt} 
           className="inline-block w-2 h-2 rounded-full bg-slate-800 hover:bg-cyan-500 cursor-pointer mt-2" 
-          title="Hidden Admin Console"
+          title="Toggle Marshal Mode"
         />
       </footer>
 
       {/* Modals */}
       <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
       <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} onRegistered={fetchBracket} />
-      <AdminModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} matches={matches} onUpdate={fetchBracket} />
     </div>
   );
 }
