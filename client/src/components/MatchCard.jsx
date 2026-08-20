@@ -1,38 +1,26 @@
 import React from 'react';
 import { Trophy, Flame, Plus, Minus, Users } from 'lucide-react';
 
-export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChange, onSelectTeam }) {
+export default function MatchCard({ match, isAdmin, onScoreChange, onSelectTeam }) {
   const isTeamAWinner = match.winner && match.teamA && match.winner._id === match.teamA._id;
   const isTeamBWinner = match.winner && match.teamB && match.winner._id === match.teamB._id;
   const isLive = match.status === 'ONGOING' && (match.scoreA > 0 || match.scoreB > 0);
   const maxScore = match.bestOf ? Math.ceil(match.bestOf / 2) : 2;
 
-  const canScore = isAdmin && isCurrentMatch && match.status !== 'COMPLETED' && match.teamA && match.teamB;
+  // Marshal can score on any match where both teams are set and not yet completed
+  const canScore = isAdmin && match.status !== 'COMPLETED' && match.teamA && match.teamB;
 
   return (
-    <div className={`w-72 bg-slate-900/95 border rounded-xl overflow-hidden shadow-xl transition-all duration-300 ${
-      isCurrentMatch && match.status !== 'COMPLETED'
-        ? 'border-cyan-400 ring-2 ring-cyan-500/30 shadow-cyan-500/20 scale-[1.02]'
-        : isLive
-          ? 'border-amber-500/60'
-          : 'border-slate-800 hover:border-slate-700'
+    <div className={`w-72 bg-slate-900/95 border rounded-xl overflow-hidden shadow-lg transition duration-200 ${
+      isLive 
+        ? 'border-cyan-500/60 shadow-cyan-500/10' 
+        : 'border-slate-800 hover:border-slate-700'
     }`}>
       {/* Header */}
-      <div className={`px-3 py-1.5 flex justify-between items-center border-b text-xs font-semibold ${
-        isCurrentMatch && match.status !== 'COMPLETED'
-          ? 'bg-cyan-950/80 border-cyan-500/40 text-cyan-300'
-          : 'bg-slate-950/90 border-slate-800 text-slate-400'
-      }`}>
-        <span className="font-mono flex items-center gap-1.5">
-          {match.matchCode}
-          {isCurrentMatch && match.status !== 'COMPLETED' && (
-            <span className="text-[9px] bg-cyan-500 text-slate-950 px-1.5 py-0.2 rounded font-black uppercase tracking-wider animate-pulse">
-              NOW PLAYING
-            </span>
-          )}
-        </span>
+      <div className="bg-slate-950/90 px-3 py-1.5 flex justify-between items-center border-b border-slate-800 text-xs font-semibold text-slate-400">
+        <span className="font-mono">{match.matchCode}</span>
         <div className="flex items-center gap-1.5">
-          {isLive && !isCurrentMatch && (
+          {isLive && (
             <span className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.2 rounded font-bold uppercase">
               <Flame size={10} /> Live
             </span>
@@ -53,11 +41,11 @@ export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChang
               ? 'bg-slate-800/80 text-white font-semibold' 
               : 'bg-slate-800/40 text-slate-300'
         }`}>
-          {/* Clickable Team Name to Open Roster */}
+          {/* Team Name Button to view roster */}
           <button
             onClick={() => match.teamA && onSelectTeam && onSelectTeam(match.teamA)}
             disabled={!match.teamA}
-            className="truncate max-w-[125px] text-xs text-left hover:text-cyan-400 transition flex items-center gap-1 group"
+            className="truncate max-w-[130px] text-xs text-left hover:text-cyan-400 transition flex items-center gap-1 group"
             title={match.teamA ? "Click to view roster" : ""}
           >
             <span className="truncate">{match.teamA?.name || <span className="text-slate-500 italic">TBD</span>}</span>
@@ -105,11 +93,11 @@ export default function MatchCard({ match, isCurrentMatch, isAdmin, onScoreChang
               ? 'bg-slate-800/80 text-white font-semibold' 
               : 'bg-slate-800/40 text-slate-300'
         }`}>
-          {/* Clickable Team Name to Open Roster */}
+          {/* Team Name Button to view roster */}
           <button
             onClick={() => match.teamB && onSelectTeam && onSelectTeam(match.teamB)}
             disabled={!match.teamB}
-            className="truncate max-w-[125px] text-xs text-left hover:text-cyan-400 transition flex items-center gap-1 group"
+            className="truncate max-w-[130px] text-xs text-left hover:text-cyan-400 transition flex items-center gap-1 group"
             title={match.teamB ? "Click to view roster" : ""}
           >
             <span className="truncate">{match.teamB?.name || <span className="text-slate-500 italic">TBD</span>}</span>

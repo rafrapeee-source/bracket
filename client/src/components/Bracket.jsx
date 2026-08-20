@@ -2,31 +2,8 @@ import React from 'react';
 import MatchCard from './MatchCard';
 import { AlertCircle } from 'lucide-react';
 
-const MATCH_ORDER = [
-  'UB-R1-M1',
-  'UB-R1-M2',
-  'UB-R1-M3',
-  'UB-R1-M4',
-  'LB-R1-M1',
-  'LB-R1-M2',
-  'UB-R2-M1',
-  'UB-R2-M2',
-  'LB-R2-M1',
-  'LB-R2-M2',
-  'LB-R3-M1',
-  'UB-FINALS',
-  'LB-FINALS',
-  'GRAND-FINALS',
-  'GF-RESET'
-];
-
 export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam }) {
   const getMatches = (bracketName, roundNum) => matches.filter(m => m.bracket === bracketName && m.round === roundNum);
-
-  const currentActiveMatchCode = MATCH_ORDER.find(code => {
-    const match = matches.find(m => m.matchCode === code);
-    return match && match.status !== 'COMPLETED' && match.teamA && match.teamB;
-  });
 
   const grandFinalMatch = matches.find(m => m.matchCode === 'GRAND-FINALS');
   const gfResetMatch = matches.find(m => m.matchCode === 'GF-RESET');
@@ -50,7 +27,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -67,7 +43,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -84,7 +59,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -103,6 +77,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
         </div>
 
         <div className="flex flex-row gap-10 min-w-max">
+          {/* LB Round 1 */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Round 1 (BO3)</p>
             <div className="flex flex-col justify-around h-[460px]">
@@ -110,7 +85,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -119,6 +93,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
             </div>
           </div>
 
+          {/* LB Quarter Finals */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Quarter Finals (BO3)</p>
             <div className="flex flex-col justify-around h-[460px]">
@@ -126,7 +101,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -135,6 +109,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
             </div>
           </div>
 
+          {/* LB Semi Finals */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Semi Finals (BO3)</p>
             <div className="flex flex-col justify-center h-[460px]">
@@ -142,7 +117,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -151,6 +125,7 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
             </div>
           </div>
 
+          {/* LB Finals */}
           <div className="flex flex-col w-72">
             <p className="text-xs font-semibold text-slate-400 uppercase mb-3 text-center">LB Finals (BO3)</p>
             <div className="flex flex-col justify-center h-[460px]">
@@ -158,7 +133,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 <MatchCard 
                   key={match.matchCode} 
                   match={match} 
-                  isCurrentMatch={match.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
@@ -181,7 +155,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
               <span className="text-xs font-semibold text-slate-400 mb-2 uppercase">Grand Finals Match 1</span>
               <MatchCard 
                 match={grandFinalMatch} 
-                isCurrentMatch={grandFinalMatch.matchCode === currentActiveMatchCode}
                 isAdmin={isAdmin}
                 onScoreChange={onScoreChange}
                 onSelectTeam={onSelectTeam}
@@ -195,7 +168,6 @@ export default function Bracket({ matches, isAdmin, onScoreChange, onSelectTeam 
                 </span>
                 <MatchCard 
                   match={gfResetMatch} 
-                  isCurrentMatch={gfResetMatch.matchCode === currentActiveMatchCode}
                   isAdmin={isAdmin}
                   onScoreChange={onScoreChange}
                   onSelectTeam={onSelectTeam}
